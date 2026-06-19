@@ -276,11 +276,19 @@ function GerayoApp() {
 
   const join = async () => {
     if (!plate.trim()) return;
+    setMicError(null);
     setStatus("Requesting microphone…");
+
+    // Try to acquire mic, but don't block joining if denied/unavailable (iframe, HTTP, etc.)
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Microphone API unavailable in this context. Open the app in a new tab (HTTPS).");
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       localStreamRef.current = stream;
-      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+
+      const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new Ctor();
       audioCtxRef.current = ctx;
 
       const src = ctx.createMediaStreamSource(stream);
@@ -289,6 +297,7 @@ function GerayoApp() {
       src.connect(analyser);
       const data = new Uint8Array(analyser.frequencyBinCount);
       const tick = () => {
+        if (!audioCtxRef.current) return;
         analyser.getByteTimeDomainData(data);
         let sum = 0;
         for (let i = 0; i < data.length; i++) {
@@ -301,17 +310,22 @@ function GerayoApp() {
       };
       tick();
     } catch (err) {
-      setMicError((err as Error).message);
-      setStatus("Microphone blocked");
-      return;
+      const msg = (err as Error).message || "Microphone blocked";
+      setMicError(msg + " — joining in listen-only mode.");
+      setStatus("Listen-only (no mic)");
+      // continue without local stream
     }
 
-    const ch = new BroadcastChannel(`gerayo-room-${roomKey}`);
-    channelRef.current = ch;
-    ch.onmessage = (e) => handleSignal(e.data as SignalMsg);
+    try {
+      const ch = new BroadcastChannel(`gerayo-room-${roomKey}`);
+      channelRef.current = ch;
+      ch.onmessage = (e) => handleSignal(e.data as SignalMsg);
+    } catch (e) {
+      console.warn("BroadcastChannel failed", e);
+    }
 
     setJoined(true);
-    setStatus(`Connected to room ${plate.toUpperCase()}`);
+    setStatus((s) => (s.startsWith("Listen") ? s : `Connected to room ${plate.toUpperCase()}`));
     try {
       const sessions = JSON.parse(localStorage.getItem("gerayo_sessions") || "[]");
       sessions.unshift({ id: myId, plate: plate.toUpperCase(), role, joinedAt: Date.now() });
