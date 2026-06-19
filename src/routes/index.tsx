@@ -312,6 +312,11 @@ function GerayoApp() {
 
     setJoined(true);
     setStatus(`Connected to room ${plate.toUpperCase()}`);
+    try {
+      const sessions = JSON.parse(localStorage.getItem("gerayo_sessions") || "[]");
+      sessions.unshift({ id: myId, plate: plate.toUpperCase(), role, joinedAt: Date.now() });
+      localStorage.setItem("gerayo_sessions", JSON.stringify(sessions.slice(0, 100)));
+    } catch { /* noop */ }
     setTimeout(() => send({ type: "hello", from: myId, role }), 100);
   };
 
@@ -339,19 +344,30 @@ function GerayoApp() {
   // -------- Speed simulator (always running for the dashboard) --------
   useEffect(() => {
     const id = setInterval(() => {
-      setCars((prev) =>
-        prev.map((c) => {
-          // Random walk speed within 30..120 km/h
+      setCars((prev) => {
+        const next = prev.map((c) => {
           const delta = (Math.random() - 0.45) * 8;
-          let next = c.speed + delta;
-          if (next < 30) next = 30 + Math.random() * 5;
-          if (next > 120) next = 120 - Math.random() * 5;
-          return { ...c, speed: Math.round(next) };
-        }),
-      );
+          let n = c.speed + delta;
+          if (n < 30) n = 30 + Math.random() * 5;
+          if (n > 120) n = 120 - Math.random() * 5;
+          return { ...c, speed: Math.round(n) };
+        });
+        try { localStorage.setItem("gerayo_cars", JSON.stringify(next)); } catch { /* noop */ }
+        return next;
+      });
     }, 1500);
     return () => clearInterval(id);
   }, []);
+
+  // Sync evidence metadata to localStorage for the Admin Panel
+  useEffect(() => {
+    try {
+      const meta = evidence.map((e) => ({
+        id: e.id, timestamp: e.timestamp, plate: e.plate, durationMs: e.durationMs,
+      }));
+      localStorage.setItem("gerayo_evidence", JSON.stringify(meta));
+    } catch { /* noop */ }
+  }, [evidence]);
 
   // Alarm when a car transitions into Red zone (officer only)
   useEffect(() => {
@@ -513,6 +529,7 @@ function GerayoApp() {
               <div className="text-xs text-zinc-400">Role</div>
               <div className={`font-bold ${isOfficer ? "text-red-400" : "text-zinc-200"}`}>{role}</div>
             </div>
+            <a href="/admin" className="bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-lg text-sm font-semibold">Admin</a>
             <button onClick={leave} className="bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-lg text-sm font-semibold">Disconnect</button>
           </div>
         </div>
