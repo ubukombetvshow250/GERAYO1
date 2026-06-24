@@ -543,6 +543,7 @@ function GerayoApp() {
               <div className="text-xs text-zinc-400">Role</div>
               <div className={`font-bold ${isOfficer ? "text-red-400" : "text-zinc-200"}`}>{role}</div>
             </div>
+            <a href="/map" className="bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-lg text-sm font-semibold">🗺️ Live Map</a>
             <a href="/admin" className="bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-lg text-sm font-semibold">Admin</a>
             <button onClick={leave} className="bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-lg text-sm font-semibold">Disconnect</button>
           </div>
