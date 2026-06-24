@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DriverPlateRouteImport } from './routes/driver.$plate'
 
 const MapRoute = MapRouteImport.update({
   id: '/map',
@@ -28,35 +29,44 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriverPlateRoute = DriverPlateRouteImport.update({
+  id: '/driver/$plate',
+  path: '/driver/$plate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/map': typeof MapRoute
+  '/driver/$plate': typeof DriverPlateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/map': typeof MapRoute
+  '/driver/$plate': typeof DriverPlateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/map': typeof MapRoute
+  '/driver/$plate': typeof DriverPlateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/map'
+  fullPaths: '/' | '/admin' | '/map' | '/driver/$plate'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/map'
-  id: '__root__' | '/' | '/admin' | '/map'
+  to: '/' | '/admin' | '/map' | '/driver/$plate'
+  id: '__root__' | '/' | '/admin' | '/map' | '/driver/$plate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   MapRoute: typeof MapRoute
+  DriverPlateRoute: typeof DriverPlateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/driver/$plate': {
+      id: '/driver/$plate'
+      path: '/driver/$plate'
+      fullPath: '/driver/$plate'
+      preLoaderRoute: typeof DriverPlateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   MapRoute: MapRoute,
+  DriverPlateRoute: DriverPlateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
