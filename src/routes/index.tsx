@@ -689,10 +689,14 @@ function GerayoApp() {
                       over ? "bg-red-400 animate-pulse" : "bg-emerald-400"
                     }`}
                   />
-                  <div className="flex-1 min-w-0">
+                  <a
+                    href={`/driver/${encodeURIComponent(c.plate)}`}
+                    className="flex-1 min-w-0 hover:underline"
+                    title="Open driver profile"
+                  >
                     <div className={`font-mono font-bold text-sm ${over ? "text-white" : ""}`}>{c.plate}</div>
-                    <div className={`text-xs ${over ? "text-red-100" : "text-emerald-300/80"}`}>{c.driver}</div>
-                  </div>
+                    <div className={`text-xs ${over ? "text-red-100" : "text-emerald-300/80"}`}>{c.driver} →</div>
+                  </a>
                   <div className="text-right">
                     <div className={`font-black text-lg leading-none ${over ? "text-white" : "text-emerald-200"}`}>{c.speed}</div>
                     <div className="text-[10px] uppercase opacity-80">km/h</div>
